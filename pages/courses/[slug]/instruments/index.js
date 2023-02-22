@@ -17,24 +17,29 @@ function Instruments() {
   );
   const sortedIntruments = instrumentsLoaded ? Object.values(instruments).sort((A, B) => A.name > B.name): [];
   const roster = useSelector((state) => state.roster);
-  // console.log('roster', roster);
+  //  console.log('roster', roster);
   const router = useRouter();
   const { slug } = router.query;
   // console.log('instruments', instruments);
   // console.log('slug', slug);
   const dispatch = useDispatch();
+  // Fetch the roster. This is not in an if-statement because the roster would not
+  // re-load in a different class.
+  dispatch(
+    fetchRoster({ djangoToken: userInfo.token, courseSlug: slug })
+  );
   useEffect(() => {
     if ('token' in userInfo) {
       if (!instrumentsLoaded) {
         dispatch(fetchInstruments(userInfo.token));
       }
       // if (session) {
-      if (!roster.loaded && slug) {
-        // console.log('userInfo', userInfo);
-        dispatch(
-          fetchRoster({ djangoToken: userInfo.token, courseSlug: slug })
-        );
-      }
+      // if (!roster.loaded && slug) {
+      //   // console.log('userInfo', userInfo);
+      //   dispatch(
+      //     fetchRoster({ djangoToken: userInfo.token, courseSlug: slug })
+      //   );
+      // }
     }
   }, [dispatch, slug, userInfo]);
   const updateInstruments = (ev) => {};

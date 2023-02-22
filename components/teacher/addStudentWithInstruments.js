@@ -1,11 +1,13 @@
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { useQuery } from 'react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import Spinner from 'react-bootstrap/Spinner';
 import Link from 'next/link';
 import { Button } from 'react-bootstrap';
 import { FaMusic } from 'react-icons/fa';
 import { fetchInstruments, fetchRoster } from '../../actions';
+import { getEnrollments } from '../../api';
 
 function StudentsWithInstruments() {
   const userInfo = useSelector((state) => state.currentUser);
@@ -16,23 +18,33 @@ function StudentsWithInstruments() {
     ? Object.values(instruments).sort((A, B) => A.name > B.name)
     : [];
   const roster = useSelector((state) => state.roster);
+  const 
   const router = useRouter();
   const { slug } = router.query;
   const dispatch = useDispatch();
+
+  // Fetch the roster. This is not in an if-statement because the roster would not
+  // re-load in a different class.
+  dispatch(
+        fetchRoster({ djangoToken: userInfo.token, courseSlug: slug })
+      );
   useEffect(() => {
     if ('token' in userInfo) {
       if (!instrumentsLoaded) {
         dispatch(fetchInstruments(userInfo.token));
       }
-      if (!roster.loaded && slug) {
-        dispatch(
-          fetchRoster({ djangoToken: userInfo.token, courseSlug: slug })
-        );
-      }
+      // if (!roster.loaded && slug) {
+      //   dispatch(
+      //     fetchRoster({ djangoToken: userInfo.token, courseSlug: slug })
+      //   );
+      // }
     }
   }, [dispatch, slug, userInfo]);
+  // console.log('state', useSelector((state) => state.roster));
 
+  // Displays a list of students with their instruments
   // FIXME the greater than 1 here is a bit of a hack. because the course will already have the teacher enrollment, simply checking for any enrollment is insufficient to hide this section when there are no students
+  // return roster?.items && Object.values(roster.items).length > 1 ? (
   return roster?.items && Object.values(roster.items).length > 1 ? (
     <div>
       <h2>Current Students</h2>
@@ -46,7 +58,7 @@ function StudentsWithInstruments() {
                 <div className="col-3">{enrollment.user.name}</div>
                 <div className="col">
                   {enrollment.instrument &&
-                  instruments[enrollment.instrument.id]
+                    instruments[enrollment.instrument.id]
                     ? instruments[enrollment.instrument.id].name
                     : 'No Instrument Assigned'}
                 </div>
@@ -70,7 +82,13 @@ function StudentsWithInstruments() {
         </Button>
       </Link>
     </div>
-  ) : null;
+  ) :
+    <div>
+      <h2>Current Students</h2>
+      Loading Current Students...
+      <br />
+      <Spinner />
+    </div>;
 }
 
 export default StudentsWithInstruments;
