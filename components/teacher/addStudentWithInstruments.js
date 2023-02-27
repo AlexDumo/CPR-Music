@@ -32,17 +32,19 @@ function StudentsWithInstruments() {
       if (!instrumentsLoaded) {
         dispatch(fetchInstruments(userInfo.token));
       }
-      // if (!roster.loaded && slug) {
-      //   dispatch(
-      //     fetchRoster({ djangoToken: userInfo.token, courseSlug: slug })
-      //   );
-      // }
+      if ((!roster.loaded && slug) || (roster.loaded && slug && slug !== roster.courseSlug)) {
+        dispatch(
+          fetchRoster({ djangoToken: userInfo.token, courseSlug: slug })
+        );
+      }
     }
   }, [dispatch, slug, userInfo]);
   // console.log('state', useSelector((state) => state.roster));
 
   // Displays a list of students with their instruments
   // FIXME the greater than 1 here is a bit of a hack. because the course will already have the teacher enrollment, simply checking for any enrollment is insufficient to hide this section when there are no students
+
+  console.log('roster', roster)
   return roster?.items && Object.values(roster.items).length > 1 ? (
     <div>
       <h2>Current Students</h2>

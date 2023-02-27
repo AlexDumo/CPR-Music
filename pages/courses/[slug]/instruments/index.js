@@ -34,12 +34,12 @@ function Instruments() {
         dispatch(fetchInstruments(userInfo.token));
       }
       // if (session) {
-      // if (!roster.loaded && slug) {
-      //   // console.log('userInfo', userInfo);
-      //   dispatch(
-      //     fetchRoster({ djangoToken: userInfo.token, courseSlug: slug })
-      //   );
-      // }
+      if ((!roster.loaded && slug) || (roster.loaded && slug && slug !== roster.courseSlug)) {
+        // console.log('userInfo', userInfo);
+        dispatch(
+          fetchRoster({ djangoToken: userInfo.token, courseSlug: slug })
+        );
+      }
     }
   }, [dispatch, slug, userInfo]);
   const updateInstruments = (ev) => {};
