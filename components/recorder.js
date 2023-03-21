@@ -12,6 +12,15 @@ import Row from 'react-bootstrap/Row';
 import { useRouter } from 'next/router';
 import { UploadStatusEnum } from '../types';
 import StatusIndicator from './statusIndicator';
+import dynamic from 'next/dynamic'
+
+// const WaveFormDisplay = dynamic(() => import('@/components/MusicPlayer/MusicPlayer'), {
+//     ssr: false,
+// })
+// ...
+// return(
+// <MusicPlayer />
+// )
 
 export default function Recorder({ submit, accompaniment }) {
   // const Mp3Recorder = new MicRecorder({ bitRate: 128 }); // 128 is default already
@@ -24,6 +33,7 @@ export default function Recorder({ submit, accompaniment }) {
   const dispatch = useDispatch();
   const [min, setMinute] = useState(0);
   const [sec, setSecond] = useState(0);
+  // const [waveSurfer, setWaveSurfer] = useWavesurfer(null);
 
   const accompanimentRef = useRef(null);
 
@@ -83,6 +93,61 @@ export default function Recorder({ submit, accompaniment }) {
     // dispatch(submit({ audio: formData }));
     submit({ audio: formData, submissionId });
   };
+
+  const superimposeAudio = (audioOneUrl, audioTwoUrl) => {
+    console.log('superimposeAudio', audioOneUrl, audioTwoUrl);
+
+    const audioCtx = new AudioContext();
+
+    // Load first audio file
+    const audio1 = new Audio(audioOneUrl.value);
+    const source1 = audioCtx.createMediaElementSource(audio1);
+    
+    // Load second audio file
+    const audio2 = new Audio(audioTwoUrl.value);
+    const source2 = audioCtx.createMediaElementSource(audio2);
+    
+    // Create gain nodes to control volume
+    const gainNode1 = audioCtx.createGain();
+    const gainNode2 = audioCtx.createGain();
+    
+    // Connect sources to gain nodes
+    source1.connect(gainNode1);
+    source2.connect(gainNode2);
+    
+    // Connect gain nodes to the destination (output)
+    gainNode1.connect(audioCtx.destination);
+    gainNode2.connect(audioCtx.destination);
+    
+    // Set the initial gain value for each audio file
+    gainNode1.gain.value = 0.5; // 50% volume
+    gainNode2.gain.value = 0.5; // 50% volume
+    
+    // Start playback of both audio files
+    audio1.play();
+    audio2.play();
+  };
+
+  // useEffect(() => {
+  //   if (blobData) {
+  //     const ws = WaveSurfer.create({
+  //       container: waveformRef.current,
+  //       waveColor: 'violet',
+  //       progressColor: 'purple',
+  //       height: 100,
+  //       barWidth: 2,
+  //       responsive: true,
+  //     });
+  //     ws.loadBlob(blobData);
+  //     setWaveSurfer(ws);
+  //   }
+  //   return () => {
+  //     if (waveSurfer) {
+  //       waveSurfer.destroy();
+  //     }
+  //   };
+  // }, [blobData]);
+  
 
   // check for recording permissions
   useEffect(() => {
@@ -166,6 +231,7 @@ export default function Recorder({ submit, accompaniment }) {
             </span>
           ) : (
             <ListGroup as="ol" numbered>
+              {blobInfo.length === 2 && superimposeAudio(blobInfo[0].url, blobInfo[1].url)}
               {blobInfo.map((take, i) => (
                 <ListGroupItem
                   key={take.url}
@@ -179,6 +245,7 @@ export default function Recorder({ submit, accompaniment }) {
                     src={take.url}
                     controls
                   />
+                  {/* <div className='waveform' ref={waveFormRef} /> */}
                   <Button
                     onClick={() => submitRecording(i, `recording-take-${i}`)}
                   >
